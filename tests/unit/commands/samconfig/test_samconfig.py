@@ -84,6 +84,7 @@ class TestSamConfigForAllCommands(TestCase):
                 None,
                 ANY,
                 None,
+                "text",
             )
 
     @patch("samcli.commands.validate.validate.do_cli")
@@ -103,7 +104,7 @@ class TestSamConfigForAllCommands(TestCase):
                 LOG.exception("Command failed", exc_info=result.exc_info)
             self.assertIsNone(result.exception)
 
-            do_cli_mock.assert_called_with(ANY, str(Path(os.getcwd(), "mytemplate.yaml")), False)
+            do_cli_mock.assert_called_with(ANY, str(Path(os.getcwd(), "mytemplate.yaml")), False, None)
 
     @patch("samcli.commands.build.command.do_cli")
     def test_build(self, do_cli_mock):
@@ -164,6 +165,9 @@ class TestSamConfigForAllCommands(TestCase):
                 False,
                 "READ",
                 True,
+                False,
+                None,
+                "text",
             )
 
     @patch("samcli.commands.build.command.do_cli")
@@ -224,6 +228,9 @@ class TestSamConfigForAllCommands(TestCase):
                 False,
                 "READ",
                 False,
+                False,
+                None,
+                "text",
             )
 
     @patch("samcli.commands.build.command.do_cli")
@@ -283,6 +290,9 @@ class TestSamConfigForAllCommands(TestCase):
                 False,
                 "READ",
                 False,
+                False,
+                None,
+                "text",
             )
 
     @patch("samcli.commands.build.command.do_cli")
@@ -343,6 +353,9 @@ class TestSamConfigForAllCommands(TestCase):
                 False,
                 "READ",
                 False,
+                False,
+                None,
+                "text",
             )
 
     @patch("samcli.commands.build.command.do_cli")
@@ -404,6 +417,9 @@ class TestSamConfigForAllCommands(TestCase):
                 False,
                 "READ",
                 False,
+                False,
+                None,
+                "text",
             )
 
     @patch("samcli.commands.build.command.do_cli")
@@ -462,6 +478,9 @@ class TestSamConfigForAllCommands(TestCase):
                 False,
                 "READ",
                 False,
+                False,
+                None,
+                "text",
             )
 
     @patch("samcli.commands.build.command.do_cli")
@@ -519,6 +538,9 @@ class TestSamConfigForAllCommands(TestCase):
                 False,
                 "READ",
                 False,
+                False,
+                None,
+                "text",
             )
 
     @patch("samcli.commands.local.invoke.cli.do_cli")
@@ -586,7 +608,9 @@ class TestSamConfigForAllCommands(TestCase):
                 None,
                 None,
                 True,
+                None,
                 True,
+                (),
                 None,
                 None,
             )
@@ -656,7 +680,9 @@ class TestSamConfigForAllCommands(TestCase):
                 None,
                 "python3.11",
                 True,
+                None,
                 True,
+                (),
                 None,
                 None,
             )
@@ -729,7 +755,10 @@ class TestSamConfigForAllCommands(TestCase):
                 None,
                 None,
                 None,
+                None,
                 False,
+                False,
+                (),
             )
 
     @patch("samcli.commands.local.start_lambda.cli.do_cli")
@@ -795,7 +824,10 @@ class TestSamConfigForAllCommands(TestCase):
                 {},
                 ("image",),
                 None,
+                None,
                 False,
+                False,
+                (),
             )
 
     @patch("samcli.lib.cli_validation.image_repository_validation._is_all_image_funcs_provided")
@@ -856,6 +888,7 @@ class TestSamConfigForAllCommands(TestCase):
                 None,
                 False,
                 False,
+                None,
             )
 
     @patch("samcli.commands._utils.options.get_template_artifacts_format")
@@ -918,6 +951,7 @@ class TestSamConfigForAllCommands(TestCase):
             "region": "myregion",
             "signing_profiles": "function=profile:owner",
             "disable_rollback": True,
+            "express": True,
         }
 
         with samconfig_parameters(["deploy"], self.scratch_dir, **config_values) as config_path:
@@ -961,9 +995,12 @@ class TestSamConfigForAllCommands(TestCase):
                 "samconfig.toml",
                 "default",
                 False,
+                None,
                 True,
                 "ROLLBACK",
                 60,
+                True,
+                "text",
             )
 
     @patch("samcli.commands.deploy.command.do_cli")
@@ -1076,9 +1113,12 @@ class TestSamConfigForAllCommands(TestCase):
                 "samconfig.toml",
                 "default",
                 False,
+                None,
                 True,
                 "ROLLBACK",
                 60,
+                False,
+                "text",
             )
 
     @patch("samcli.commands._utils.experimental.is_experimental_enabled")
@@ -1267,6 +1307,7 @@ class TestSamConfigForAllCommands(TestCase):
             "region": "myregion",
             "signing_profiles": "function=profile:owner",
             "watch_exclude": {"HelloWorld": ["file.txt", "other.txt"], "HelloMars": ["single.file"]},
+            "express": True,
         }
 
         if use_container is not None:
@@ -1316,6 +1357,8 @@ class TestSamConfigForAllCommands(TestCase):
                 "default",
                 False,
                 {"HelloWorld": ["file.txt", "other.txt"], "HelloMars": ["single.file"]},
+                None,
+                True,
             )
 
 
@@ -1357,9 +1400,11 @@ class TestSamConfigWithOverrides(TestCase):
         }
 
         # NOTE: Because we don't load the full Click BaseCommand here, this is mounted as top-level command
-        with samconfig_parameters(
-            ["start-lambda"], self.scratch_dir, **config_values
-        ) as config_path, tempfile.NamedTemporaryFile() as key_file, tempfile.NamedTemporaryFile() as cert_file:
+        with (
+            samconfig_parameters(["start-lambda"], self.scratch_dir, **config_values) as config_path,
+            tempfile.NamedTemporaryFile() as key_file,
+            tempfile.NamedTemporaryFile() as cert_file,
+        ):
             from samcli.commands.local.start_lambda.cli import cli
 
             LOG.debug(Path(config_path).read_text())
@@ -1439,7 +1484,10 @@ class TestSamConfigWithOverrides(TestCase):
                 {},
                 ("image",),
                 None,
+                None,
                 False,
+                False,
+                (),
             )
 
     @patch("samcli.commands.local.start_lambda.cli.do_cli")
@@ -1465,9 +1513,11 @@ class TestSamConfigWithOverrides(TestCase):
         }
 
         # NOTE: Because we don't load the full Click BaseCommand here, this is mounted as top-level command
-        with samconfig_parameters(
-            ["start-lambda"], self.scratch_dir, **config_values
-        ) as config_path, tempfile.NamedTemporaryFile() as key_file, tempfile.NamedTemporaryFile() as cert_file:
+        with (
+            samconfig_parameters(["start-lambda"], self.scratch_dir, **config_values) as config_path,
+            tempfile.NamedTemporaryFile() as key_file,
+            tempfile.NamedTemporaryFile() as cert_file,
+        ):
             from samcli.commands.local.start_lambda.cli import cli
 
             LOG.debug(Path(config_path).read_text())
@@ -1539,7 +1589,10 @@ class TestSamConfigWithOverrides(TestCase):
                 {},
                 ("image",),
                 None,
+                None,
                 True,
+                False,
+                (),
             )
 
     @patch("samcli.commands.validate.validate.do_cli")
@@ -1560,7 +1613,7 @@ class TestSamConfigWithOverrides(TestCase):
                 LOG.exception("Command failed", exc_info=result.exc_info)
             self.assertIsNone(result.exception)
 
-            do_cli_mock.assert_called_with(ANY, str(Path(os.getcwd(), "mytemplate.yaml")), False)
+            do_cli_mock.assert_called_with(ANY, str(Path(os.getcwd(), "mytemplate.yaml")), False, None)
 
 
 @contextmanager
